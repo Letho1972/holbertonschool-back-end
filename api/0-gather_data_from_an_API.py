@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 """ Write a Python script that, using this REST API, for a given employee ID,
 returns information about his/her TODO list progress. """
@@ -28,7 +28,8 @@ def get_employee_todo_progress(employee_id):
 
         # Display TODO list progress
         total_tasks = len(todos_data)
-        completed_tasks_count = len(completed_tasks)
+        completed_tasks_count = \
+            sum(1 for task in todos_data if task["completed"])
 
         print("Employee {} is done with tasks ({}/{}):"
               .format(employee_name, completed_tasks_count, total_tasks))
