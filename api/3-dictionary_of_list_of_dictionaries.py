@@ -7,62 +7,46 @@ import sys
 import json
 
 
-def to_do(employee_ID):
+def to_do_all_employees():
     """
-    Retrieve employee information
-    and TODO list progress based on the employee ID.
-
-    Args:
-        employee_ID (int): The ID of the employee.
+    Retrieve TODO list progress for all employees.
 
     Returns:
-        dict: Dictionary containing employee information
-          and TODO list progress.
+        None
+
+    Prints:
+        Displays TODO list progress for all employees.
     """
-    url = 'https://jsonplaceholder.typicode.com'
-    employee_url = f"{url}/users/{employee_ID}"
-    todos_url = f"{url}/todos?userId={employee_ID}"
+    url = 'https://jsonplaceholder.typicode.com/users'
+    users_response = requests.get(url)
+    users_data = users_response.json()
 
-    employee_response = requests.get(employee_url)
-    employee_data = employee_response.json()
+    if users_response.status_code == 200:
+        all_employees_data = {}
 
-    if employee_response.status_code == 200:
-        employee_name = employee_data.get('name')
+        for user in users_data:
+            employee_ID = user['id']
+            employee_name = user['username']
 
-    todos_response = requests.get(todos_url)
-    todos_data = todos_response.json()
+            todos_url = f"{url}/{employee_ID}/todos"
+            todos_response = requests.get(todos_url)
+            todos_data = todos_response.json()
 
-    if todos_response.status_code == 200:
-        total_tasks = len(todos_data)
-        completed_tasks = 0
+            if todos_response.status_code == 200:
+                employee_tasks = []
+                for task in todos_data:
+                    employee_tasks.append({
+                        "username": employee_name,
+                        "task": task['title'],
+                        "completed": task['completed']
+                    })
 
-        for task in todos_data:
-            completed_tasks += task['completed']
+                all_employees_data[str(employee_ID)] = employee_tasks
 
-        employee_info = {
-            "username": employee_name,
-            "tasks": [{"task": task['title'], "completed": task['completed']}
-                      for task in todos_data]
-        }
-
-        return employee_info
+        json_path = 'todo_all_employees.json'
+        with open(json_path, 'w') as json_file:
+            json.dump(all_employees_data, json_file, indent=2)
 
 
 if __name__ == "__main__":
-    all_employees_data = {}
-
-    if len(sys.argv) != 1:
-        print("Usage: python script.py")
-        sys.exit(1)
-
-    for employee_id in range(1, 11):  # Assuming employee IDs from 1 to 10
-        employee_data = to_do(employee_id)
-        if employee_data:
-            all_employees_data[employee_id] = employee_data
-
-    # Export data to JSON file
-    output_file = "todo_all_employees.json"
-    with open(output_file, 'w') as json_file:
-        json.dump(all_employees_data, json_file, indent=2)
-
-    print(f"Data exported to {output_file}")
+    to_do_all_employees()
