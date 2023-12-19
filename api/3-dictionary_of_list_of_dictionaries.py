@@ -2,9 +2,9 @@
 
 """ Extend your Python script to export data in the JSON format. """
 
+import json
 import requests
 import sys
-import json
 
 
 def to_do_all_employees():
