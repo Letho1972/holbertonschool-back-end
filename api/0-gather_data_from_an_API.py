@@ -7,45 +7,51 @@ import requests
 import sys
 
 
-def get_employee_todo_progress(employee_id):
-    base_url = "https://jsonplaceholder.typicode.com"
-    user_url = "{}/users/{}".format(base_url, employee_id)
-    todos_url = "{}/todos?userId={}".format(base_url, employee_id)
+def to_do(employee_ID):
+    """
+    Retrieve employee information and TODO
+    list progress based on the employee ID.
 
-    try:
-        # Fetch employee information
-        user_response = requests.get(user_url)
-        user_data = user_response.json()
-        employee_name = user_data.get("name")
+    Args:
+        employee_ID (int): The ID of the employee.
 
-        # Fetch TODO list for the employee
-        todos_response = requests.get(todos_url)
-        todos_data = todos_response.json()
+    Returns:
+        None
 
-        # Filter completed tasks
-        completed_tasks = [task['title']
-                           for task in todos_data if task["completed"]]
+    Prints:
+        Displays the employee's TODO list progress.
+    """
+    url = 'https://jsonplaceholder.typicode.com'
+    employee_url = f"{url}/users/{employee_ID}"
+    todos_url = f"{url}/todos?userId={employee_ID}"
 
-        # Display TODO list progress
+    employee_response = requests.get(employee_url)
+    employee_data = employee_response.json()
+
+    if employee_response.status_code == 200:
+        employee_name = employee_data.get('name')
+
+    todos_response = requests.get(todos_url)
+    todos_data = todos_response.json()
+
+    if todos_response.status_code == 200:
         total_tasks = len(todos_data)
-        completed_tasks_count = \
-            sum(1 for task in todos_data if task["completed"])
+        completed_tasks = 0
+    for task in todos_data:
+        completed_tasks += task['completed']
 
-        print("Employee {} is done with tasks ({}/{}):"
-              .format(employee_name, completed_tasks_count, total_tasks))
+    print("Employee {} is done with tasks({}/{}):"
+          .format(employee_name, completed_tasks, total_tasks))
 
-        # Display titles of completed tasks
-        for task_title in completed_tasks:
-            print("    {}".format(task_title))
-
-    except requests.RequestException as e:
-        print("Error fetching data: {}".format(e))
+    for task in todos_data:
+        if task['completed']:
+            print("\t {}".format(task['title']))
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: python script.py <employee_id>")
+        print("error")
         sys.exit(1)
 
     employee_id = int(sys.argv[1])
-    get_employee_todo_progress(employee_id)
+    to_do(employee_id)
